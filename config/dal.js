@@ -4,14 +4,36 @@
 
 const connection = require("../config/connection.js");
 
+// connection.query('INSERT INTO posts SET ?', {title: 'test'}, function (error, results, fields) {
+//     if (error) throw error;
+//     console.log(results.insertId);
+//   });
+
 // -------------------------------------------------------------
-// Cleans the data
+// Creates questionmarks for multiple parameters
 // -------------------------------------------------------------
 
+function questionmark(arryLen) {
 
+    const arr = [];
 
+    for (i = 0; i < arryLen; i++) {
+      arr.push(`?`);
+    }
+  
+    return arr.toString();    
+}
 
+function questionmarks(arryLen) {
 
+    const arr = [];
+
+    for (i = 0; i < arryLen; i++) {
+      arr.push(`??`);
+    }
+  
+    return arr.toString();    
+}
 
 // -------------------------------------------------------------
 // Object for mySQL query pulls
@@ -19,10 +41,13 @@ const connection = require("../config/connection.js");
 
 const dataAccessLayer = {
 
-    selectall: function(table) {
+    select: function(cols, table) {
+
+        const query = `SELECT ${questionmarks(cols.length)} FROM ${questionmarks(table.length)}`;
+        const params = [...cols, ...table];
 
         return new Promise((resolve, reject) => {
-            connection.query("SELECT * FROM ??", [table], function(err, res) {
+            connection.query(query, params, function(err, res) {
                 if (err) throw err;
                 console.table(res);
             });
@@ -30,20 +55,39 @@ const dataAccessLayer = {
 
     },
 
-    select: function() {
+    create: function(cols, vals, table) {
 
-        connection.query("SELECT ? FROM ? WHERE ? = ?", function(err, res) {
-            if (err) throw err;
-            console.table(res);
+        const query = `INSERT INTO ${questionmarks(table.length)} (${questionmarks(cols.length)}) VALUES (${questionmark(vals.length)})`;
+        const params = [...table, ...cols, ...vals];
+
+        console.log(params);
+        console.log(query);
+
+        return new Promise((resolve, reject) => {
+            connection.query(query, params, function(err, res) {
+                if (err) throw err;
+                return res.insertId;
+            });
         });
 
     },
 
-    create: function() {
+    update: function(cols, vals, table) {
 
-    },
+        // NOT FINISHED
 
-    update: function() {
+        const query = `UPDATE ${questionmarks(table.length)} SET ${questionmarks(cols.length)} = ${questionmark(vals.length)} WHERE`;
+        const params = [...table, ...cols, ...vals];
+
+        console.log(params);
+        console.log(query);
+
+        return new Promise((resolve, reject) => {
+            connection.query(query, params, function(err, res) {
+                if (err) throw err;
+                return res.insertId;
+            });
+        });
 
     },
 
