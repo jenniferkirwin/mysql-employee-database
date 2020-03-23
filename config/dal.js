@@ -44,21 +44,34 @@ const dataAccessLayer = {
         connection.query(query, params, function(err, res) {
             if (err) throw err;
             callback(res);
+            
         });
 
     },
 
-    create: function(cols, vals, table) {
+    selectwhere: function(cols, table, paramCol, paramVal, callback) {
+
+        const query = `SELECT ${questionmarks(cols.length)} FROM ${questionmarks(table.length)} WHERE ${questionmarks(paramCol.length)} = ${questionmark(paramVal.length)}`;
+        const params = [...cols, ...table];
+
+        connection.query(query, params, function(err, res) {
+            if (err) throw err;
+            callback(res);
+            
+        });
+
+    },
+
+    create: function(cols, vals, table, callback) {
 
         const query = `INSERT INTO ${questionmarks(table.length)} (${questionmarks(cols.length)}) VALUES (${questionmark(vals.length)})`;
         const params = [...table, ...cols, ...vals];
 
-        return new Promise((resolve, reject) => {
             connection.query(query, params, function(err, res) {
                 if (err) throw err;
                 console.log(`${vals} added to ${table}`);
-                return res.insertId;
-            });
+                callback();
+                // return res.insertId;
         });
 
     },

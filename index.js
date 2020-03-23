@@ -30,8 +30,8 @@ const prompts = {
                         ]
                     }
                 ]).then(({firstaction}) => {
-                    return resolve(mySwitch(firstaction))
-                }).then()
+                    mySwitch(firstaction);
+                })
                 .catch(() => {
                     console.log(`\nSomething went wrong... please try again.\n`);
                     process.exit(1);
@@ -39,6 +39,7 @@ const prompts = {
         });
 
     },
+
     newDepartment: () => {
         return new Promise((resolve, reject) => {
 
@@ -50,7 +51,9 @@ const prompts = {
                         name: `departmentname`
                     }
                 ]).then(({departmentname}) => {
-                    return resolve(dataAccessLayer.create([`name`], [departmentname], [`department`]))
+                    return resolve(dataAccessLayer.create([`name`], [departmentname], [`department`], function() {
+                        prompts.firstaction();
+                    }))
                 }).catch(() => {
                     console.log(`\nSomething went wrong... please try again.\n`);
                     process.exit(1);
@@ -60,9 +63,12 @@ const prompts = {
 
     newEmployee: () => {
 
-        const departments = dataAccessLayer.select([`name`], [`department`], function(result) {
-            const anobj = {name};
-            console.log(anobj);
+        const roles = [];
+        const rolesId = [];
+
+        dataAccessLayer.select([`*`], [`role`], function(result) {
+            result.forEach(element => roles.push(element.title));
+            result.forEach(element => rolesId.push(element.role_id));
         });
 
         return new Promise((resolve, reject) => {
@@ -78,9 +84,20 @@ const prompts = {
                         type: `input`,
                         message: `${divider} What is the Employee's last name? ${divider}`,
                         name: `lastname`
+                    },
+                    {
+                        type: `list`,
+                        name: `role`,
+                        message: `${divider} What role does this employee have? ${divider}`,
+                        choices: roles
                     }
-                ]).then(({departmentname}) => {
-                    return resolve(dataAccessLayer.create([`name`], [departmentname], [`department`]))
+                ]).then(({firstname, lastname, role}) => {
+
+                    roleIndex = roles.indexOf(role);
+                    return resolve(dataAccessLayer.create([`first_name`, `last_name`, `role_id`], [firstname, lastname, rolesId[roleIndex]], [`employee`], function() {
+                        prompts.firstaction();
+                    }))
+
                 }).catch(() => {
                     console.log(`\nSomething went wrong... please try again.\n`);
                     process.exit(1);
@@ -96,19 +113,30 @@ const mySwitch = (returnedInput) => {
         switch (returnedInput) {
             case `View Departments`:
 
-                dataAccessLayer.select([`*`], [`department`], function(result) {console.table(result)});
+                dataAccessLayer.select([`*`], [`department`], function(result) {
+                    console.table(result);
+                    prompts.firstaction();
+                });
+                
                 resolve();
                 break;
 
             case `View Employees`:
 
-                dataAccessLayer.select([`*`], [`employee`], function(result) {console.table(result)});
+                dataAccessLayer.select([`*`], [`employee`], function(result) {
+                    console.table(result);
+                    prompts.firstaction();
+                });
+                
                 resolve();
                 break;
 
             case `View Roles`:
                 
-                dataAccessLayer.select([`*`], [`role`], function(result) {console.table(result)});
+                dataAccessLayer.select([`*`], [`role`], function(result) {
+                    console.table(result);
+                    prompts.firstaction();
+                });
                 resolve();
                 break;
 
@@ -118,12 +146,18 @@ const mySwitch = (returnedInput) => {
                 break;
 
             case `Add Employees`:
+
                 prompts.newEmployee();
                 break;
+
             case `Add Roles`:
+
                 break;
+
             case  `Update Employee Roles`:
+
                 break;
+                
             case `Exit Application`:
                 console.log(`Goodbye!`)
                 return process.exit();        
@@ -136,3 +170,6 @@ prompts.firstaction();
 // dataAccessLayer.select([`*`], [`department`], function(result) {
 //     console.table(result)
 // });
+
+// dataAccessLayer.create([`first_name`, `last_name`, `role_id`], ['TEST', 'Smith', 1], [`employee`]);
+// dataAccessLayer.create([`name`], [`Test Department`], [`department`]);
