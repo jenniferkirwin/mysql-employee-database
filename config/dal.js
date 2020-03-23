@@ -4,11 +4,6 @@
 
 const connection = require("../config/connection.js");
 
-// connection.query('INSERT INTO posts SET ?', {title: 'test'}, function (error, results, fields) {
-//     if (error) throw error;
-//     console.log(results.insertId);
-//   });
-
 // -------------------------------------------------------------
 // Creates questionmarks for multiple parameters
 // -------------------------------------------------------------
@@ -41,16 +36,14 @@ function questionmarks(arryLen) {
 
 const dataAccessLayer = {
 
-    select: function(cols, table) {
+    select: function(cols, table, callback) {
 
         const query = `SELECT ${questionmarks(cols.length)} FROM ${questionmarks(table.length)}`;
         const params = [...cols, ...table];
 
-        return new Promise((resolve, reject) => {
-            connection.query(query, params, function(err, res) {
-                if (err) throw err;
-                console.table(res);
-            });
+        connection.query(query, params, function(err, res) {
+            if (err) throw err;
+            callback(res);
         });
 
     },
@@ -60,12 +53,10 @@ const dataAccessLayer = {
         const query = `INSERT INTO ${questionmarks(table.length)} (${questionmarks(cols.length)}) VALUES (${questionmark(vals.length)})`;
         const params = [...table, ...cols, ...vals];
 
-        console.log(params);
-        console.log(query);
-
         return new Promise((resolve, reject) => {
             connection.query(query, params, function(err, res) {
                 if (err) throw err;
+                console.log(`${vals} added to ${table}`);
                 return res.insertId;
             });
         });
@@ -91,9 +82,6 @@ const dataAccessLayer = {
 
     },
 
-    delete: function() {
-
-    }
 }
 
 module.exports = dataAccessLayer;
