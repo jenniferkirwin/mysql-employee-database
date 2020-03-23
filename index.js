@@ -22,10 +22,10 @@ const prompts = {
                             `View Departments`,
                             `View Employees`,
                             `View Roles`,
-                            `Add Departments`,
-                            `Add Employees`,
-                            `Add Roles`,
-                            `Update Employee Roles`,
+                            `Add Department`,
+                            `Add Employee`,
+                            `Add Role`,
+                            `Update Employee Role`,
                             `Exit Application`
                         ]
                     }
@@ -103,7 +103,48 @@ const prompts = {
                     process.exit(1);
                 })
         });
+    },
+
+    updateEmployee: () => {
+
+        const roles = [];
+        const rolesId = [];
+
+        dataAccessLayer.select([`*`], [`role`], function(result) {
+            result.forEach(element => roles.push(element.title));
+            result.forEach(element => rolesId.push(element.role_id));
+        });
+
+        return new Promise((resolve, reject) => {
+
+            inquirer
+                .prompt([
+                    // {
+                    //     type: `input`,
+                    //     message: `${divider} What is the Employee's first name? ${divider}`,
+                    //     name: `firstname`
+                    // },
+                    {
+                        type: `list`,
+                        name: `role`,
+                        message: `${divider} What role does this employee have? ${divider}`,
+                        choices: roles
+                    }
+                ]).then(({firstname, lastname, role}) => {
+
+                    roleIndex = roles.indexOf(role);
+                    
+                    // return resolve(dataAccessLayer.create([`first_name`, `last_name`, `role_id`], [firstname, lastname, rolesId[roleIndex]], [`employee`], function() {
+                    //     prompts.firstaction();
+                    // }))
+
+                }).catch(() => {
+                    console.log(`\nSomething went wrong... please try again.\n`);
+                    process.exit(1);
+                })
+        });
     }
+
 }
 
 
@@ -140,24 +181,26 @@ const mySwitch = (returnedInput) => {
                 resolve();
                 break;
 
-            case `Add Departments`:
+            case `Add Department`:
 
                 prompts.newDepartment();
                 break;
 
-            case `Add Employees`:
+            case `Add Employee`:
 
                 prompts.newEmployee();
                 break;
 
-            case `Add Roles`:
+            case `Add Role`:
 
                 break;
 
-            case  `Update Employee Roles`:
+            case  `Update Employee Role`:
+
+                prompts.updateEmployee();
 
                 break;
-                
+
             case `Exit Application`:
                 console.log(`Goodbye!`)
                 return process.exit();        

@@ -49,18 +49,18 @@ const dataAccessLayer = {
 
     },
 
-    selectwhere: function(cols, table, paramCol, paramVal, callback) {
+    // selectwhere: function(cols, table, paramCol, paramVal, callback) {
 
-        const query = `SELECT ${questionmarks(cols.length)} FROM ${questionmarks(table.length)} WHERE ${questionmarks(paramCol.length)} = ${questionmark(paramVal.length)}`;
-        const params = [...cols, ...table];
+    //     const query = `SELECT ${questionmarks(cols.length)} FROM ${questionmarks(table.length)} WHERE ${questionmarks(paramCol.length)} = ${questionmark(paramVal.length)}`;
+    //     const params = [...cols, ...table];
 
-        connection.query(query, params, function(err, res) {
-            if (err) throw err;
-            callback(res);
+    //     connection.query(query, params, function(err, res) {
+    //         if (err) throw err;
+    //         callback(res);
             
-        });
+    //     });
 
-    },
+    // },
 
     create: function(cols, vals, table, callback) {
 
@@ -71,26 +71,21 @@ const dataAccessLayer = {
                 if (err) throw err;
                 console.log(`${vals} added to ${table}`);
                 callback();
-                // return res.insertId;
         });
 
     },
 
-    update: function(cols, vals, table) {
+    update: function(cols, vals, table, paramCol, paramVal, callback) {
 
         // NOT FINISHED
 
-        const query = `UPDATE ${questionmarks(table.length)} SET ${questionmarks(cols.length)} = ${questionmark(vals.length)} WHERE`;
-        const params = [...table, ...cols, ...vals];
+        const query = `UPDATE ${questionmarks(table.length)} SET ${questionmarks(cols.length)} = ${questionmark(vals.length)} WHERE ${questionmarks(paramCol.length)} = ${questionmark(paramVal.length)}`;
+        const params = [...table, ...cols, ...vals, ...paramCol, ...paramVal];
 
-        console.log(params);
-        console.log(query);
-
-        return new Promise((resolve, reject) => {
-            connection.query(query, params, function(err, res) {
-                if (err) throw err;
-                return res.insertId;
-            });
+        connection.query(query, params, function(err, res) {
+            if (err) throw err;
+            console.log(`${paramCol} updated in ${table}`);
+            callback();
         });
 
     },
