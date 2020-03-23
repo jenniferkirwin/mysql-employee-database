@@ -4,11 +4,6 @@
 
 const connection = require("../config/connection.js");
 
-// connection.query('INSERT INTO posts SET ?', {title: 'test'}, function (error, results, fields) {
-//     if (error) throw error;
-//     console.log(results.insertId);
-//   });
-
 // -------------------------------------------------------------
 // Creates questionmarks for multiple parameters
 // -------------------------------------------------------------
@@ -41,59 +36,60 @@ function questionmarks(arryLen) {
 
 const dataAccessLayer = {
 
-    select: function(cols, table) {
+    select: function(cols, table, callback) {
 
         const query = `SELECT ${questionmarks(cols.length)} FROM ${questionmarks(table.length)}`;
         const params = [...cols, ...table];
 
-        return new Promise((resolve, reject) => {
-            connection.query(query, params, function(err, res) {
-                if (err) throw err;
-                console.table(res);
-            });
+        connection.query(query, params, function(err, res) {
+            if (err) throw err;
+            callback(res);
+            
         });
 
     },
 
-    create: function(cols, vals, table) {
+    // selectwhere: function(cols, table, paramCol, paramVal, callback) {
+
+    //     const query = `SELECT ${questionmarks(cols.length)} FROM ${questionmarks(table.length)} WHERE ${questionmarks(paramCol.length)} = ${questionmark(paramVal.length)}`;
+    //     const params = [...cols, ...table];
+
+    //     connection.query(query, params, function(err, res) {
+    //         if (err) throw err;
+    //         callback(res);
+            
+    //     });
+
+    // },
+
+    create: function(cols, vals, table, callback) {
 
         const query = `INSERT INTO ${questionmarks(table.length)} (${questionmarks(cols.length)}) VALUES (${questionmark(vals.length)})`;
         const params = [...table, ...cols, ...vals];
 
-        console.log(params);
-        console.log(query);
-
-        return new Promise((resolve, reject) => {
             connection.query(query, params, function(err, res) {
                 if (err) throw err;
-                return res.insertId;
-            });
+                console.log(`${vals} added to ${table}`);
+                callback();
         });
 
     },
 
-    update: function(cols, vals, table) {
+    update: function(cols, vals, table, paramCol, paramVal, callback) {
 
         // NOT FINISHED
 
-        const query = `UPDATE ${questionmarks(table.length)} SET ${questionmarks(cols.length)} = ${questionmark(vals.length)} WHERE`;
-        const params = [...table, ...cols, ...vals];
+        const query = `UPDATE ${questionmarks(table.length)} SET ${questionmarks(cols.length)} = ${questionmark(vals.length)} WHERE ${questionmarks(paramCol.length)} = ${questionmark(paramVal.length)}`;
+        const params = [...table, ...cols, ...vals, ...paramCol, ...paramVal];
 
-        console.log(params);
-        console.log(query);
-
-        return new Promise((resolve, reject) => {
-            connection.query(query, params, function(err, res) {
-                if (err) throw err;
-                return res.insertId;
-            });
+        connection.query(query, params, function(err, res) {
+            if (err) throw err;
+            console.log(`${paramCol} updated in ${table}`);
+            callback();
         });
 
     },
 
-    delete: function() {
-
-    }
 }
 
 module.exports = dataAccessLayer;
